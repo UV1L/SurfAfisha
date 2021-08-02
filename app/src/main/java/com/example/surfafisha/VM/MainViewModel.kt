@@ -2,7 +2,10 @@ package com.example.surfafisha.VM
 
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.Context
 import androidx.lifecycle.*
+import androidx.room.Room
+import com.example.surfafisha.DB.DAO.FilmDataBase
 import com.example.surfafisha.DB.FilmsDB
 import com.example.surfafisha.Models.Film
 import com.example.surfafisha.Models.FilmFabric
@@ -29,6 +32,7 @@ class MainViewModel(db: FilmsDB) : ViewModel() {
     val data: LiveData<ArrayList<Film>> = _data
     private val favoriteIds: HashSet<Int> = HashSet()
     private val filmDB = db.writableDatabase
+    private var roomDB: FilmDataBase? = null
 
     init {
         _data.value = ArrayList()
@@ -40,6 +44,14 @@ class MainViewModel(db: FilmsDB) : ViewModel() {
             .build()
 
     private val filmsApi: FilmsApi = retrofit.create(FilmsApi::class.java)
+
+    fun createDB(context: Context) {
+        roomDB = Room.databaseBuilder(
+            context,
+            FilmDataBase::class.java,
+            "FilmReader"
+        ).build()
+    }
 
     fun parseJson() {
         viewModelScope.launch(Dispatchers.IO) {
