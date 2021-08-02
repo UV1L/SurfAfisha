@@ -1,15 +1,24 @@
 package com.example.surfafisha.ui.main
 
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.get
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.surfafisha.Adapters.ListFilmAdapter
+import com.example.surfafisha.DB.FilmsDB
+import com.example.surfafisha.ListFilmObserver
 import com.example.surfafisha.MainActivity
+import com.example.surfafisha.Models.Film
 import com.example.surfafisha.R
+import com.example.surfafisha.VM.MainViewModel
 
 class MainFragment : Fragment() {
 
@@ -17,7 +26,8 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels { ViewModelFactory(db) }
+    private lateinit var db: FilmsDB
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
@@ -29,12 +39,14 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        db = FilmsDB(requireContext(), "filmsDB")
 
         val recyclerView = view?.findViewById<RecyclerView>(R.id.fragment_main_recycler_view)
         recyclerView?.layoutManager = LinearLayoutManager(context)
-        recyclerView?.adapter = ListFilmAdapter(viewModel.data)
+        val filmAdapter = ListFilmAdapter()
+        recyclerView?.adapter = filmAdapter
         viewModel.parseJson()
-    }
 
+        viewModel.data.observe(viewLifecycleOwner, ListFilmObserver(requireContext(), filmAdapter))
+    }
 }

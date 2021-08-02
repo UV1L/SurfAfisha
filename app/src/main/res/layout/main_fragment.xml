@@ -47,7 +47,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/search_layout"
-        android:paddingTop="16dp"
+        android:layout_marginTop="8dp"
+        android:paddingTop="8dp"
         android:clipToPadding="false"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

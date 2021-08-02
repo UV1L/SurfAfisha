@@ -17,12 +17,32 @@
 
     <TextView
         android:id="@+id/film_layout_name"
-        android:layout_width="wrap_content"
+        android:layout_width="193dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toEndOf="@+id/film_img"
         android:layout_marginStart="14dp"
-        android:text="Название фильма"
-        android:textSize="22sp"/>
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textSize="22sp"
+        android:textColor="@color/black"
+        android:textStyle="normal"
+        android:lineHeight="28dp"/>
+    
+    <TextView
+        android:id="@+id/film_layout_overview"
+        android:layout_width="198dp"
+        android:layout_height="wrap_content"
+        android:maxHeight="60dp"
+        app:layout_constraintTop_toBottomOf="@+id/film_layout_name"
+        app:layout_constraintStart_toEndOf="@+id/film_img"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="8dp"
+        android:maxLines="3"
+        android:ellipsize="end"
+        android:textColor="@color/black_with_alpha"
+        android:textSize="14sp"
+        android:lineHeight="20dp"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
