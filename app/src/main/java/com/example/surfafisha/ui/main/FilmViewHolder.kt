@@ -7,11 +7,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.surfafisha.R
 
 class FilmViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    val name: TextView
-    val overview: TextView
-    val img: ImageView
-    val date: TextView
-    val favorite: ImageView
+    var name: TextView
+    var overview: TextView
+    var img: ImageView
+    var date: TextView
+    var favorite: ImageView
 
     init {
         name = view.findViewById(R.id.film_layout_name)

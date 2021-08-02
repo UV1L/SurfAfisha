@@ -2,7 +2,7 @@ package com.example.surfafisha
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.surfafisha.ui.main.MainFragment
+import com.example.surfafisha.ui.main.Fragments.MainFragment
 
 class MainActivity : AppCompatActivity() {
 

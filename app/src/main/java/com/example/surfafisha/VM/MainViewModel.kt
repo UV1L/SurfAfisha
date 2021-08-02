@@ -1,26 +1,28 @@
 package com.example.surfafisha.VM
 
-import android.content.ContentProvider
-import android.content.ContentValues
-import android.content.Context
 import androidx.lifecycle.*
-import androidx.room.Room
 import com.example.surfafisha.DB.DAO.FilmDataBase
-import com.example.surfafisha.DB.FilmsDB
+import com.example.surfafisha.DB.FilmEntity
+import com.example.surfafisha.IObservable
+import com.example.surfafisha.IObserver
 import com.example.surfafisha.Models.Film
-import com.example.surfafisha.Models.FilmFabric
-import com.example.surfafisha.POJO.FilmPOJO
+import com.example.surfafisha.Models.FilmFactory
 import com.example.surfafisha.POJO.FilmResponsePOJO
 import com.example.surfafisha.POJO.FilmsApi
+import com.example.surfafisha.ui.main.Fragments.NoDataFragment
+import com.example.surfafisha.ui.main.Fragments.NothingFindFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
+import kotlin.collections.ArrayList
 
-class MainViewModel(db: FilmsDB) : ViewModel() {
+class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
 
     companion object {
         private const val baseUrl = "https://api.themoviedb.org/3/"
@@ -28,69 +30,129 @@ class MainViewModel(db: FilmsDB) : ViewModel() {
         private const val lang = "ru-RU"
     }
 
+    override val observers = ArrayList<IObserver>()
+    private val roomDB: FilmDataBase = db
     private val _data: MutableLiveData<ArrayList<Film>> = MutableLiveData()
+    private val _readyToShow: MutableLiveData<Boolean> = MutableLiveData()
+    private val _clearAdapter: MutableLiveData<Boolean> = MutableLiveData()
     val data: LiveData<ArrayList<Film>> = _data
-    private val favoriteIds: HashSet<Int> = HashSet()
-    private val filmDB = db.writableDatabase
-    private var roomDB: FilmDataBase? = null
+    val readyToShow: LiveData<Boolean> = _readyToShow
+    val clearAdapter: LiveData<Boolean> = _clearAdapter
 
     init {
         _data.value = ArrayList()
+        _readyToShow.value = false
+        _clearAdapter.value = false
     }
 
     private val retrofit: Retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        .baseUrl(baseUrl)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 
     private val filmsApi: FilmsApi = retrofit.create(FilmsApi::class.java)
 
-    fun createDB(context: Context) {
-        roomDB = Room.databaseBuilder(
-            context,
-            FilmDataBase::class.java,
-            "FilmReader"
-        ).build()
+    fun startQuery() {
+        viewModelScope.launch(Dispatchers.IO) {
+            synchronized(_data) {
+                synchronized(_clearAdapter) {
+                    val films: Call<FilmResponsePOJO> = filmsApi.getFilms(api_key, lang)
+
+                    films.enqueue(object : Callback<FilmResponsePOJO> {
+                        override fun onFailure(call: Call<FilmResponsePOJO>, t: Throwable) {
+                            sendUpdateEvent(NoDataFragment.newInstance())
+                        }
+
+                        override fun onResponse(
+                            call: Call<FilmResponsePOJO>,
+                            filmResponse: Response<FilmResponsePOJO>
+                        ) {
+                            if (filmResponse.isSuccessful)
+                                onResponseSuccess(filmResponse)
+                        }
+                    })
+                }
+            }
+        }
     }
 
-    fun parseJson() {
+    private fun onResponseSuccess(filmResponse: Response<FilmResponsePOJO>) {
+        filmResponse.body()?.results?.forEach { filmPojo ->
+            val filmsWithId = roomDB.filmDao().getAllByIds(
+                intArrayOf(filmPojo.id)
+            )
+
+            val isFavorite = if (filmsWithId.isNotEmpty()) {
+                filmsWithId.first().film!!.favorite
+            } else {
+                false
+            }
+
+            val film = FilmFactory.createFilmModel(filmPojo, isFavorite)
+
+            val dataValue = _data.value
+            dataValue?.add(film)
+            _data.postValue(dataValue)
+        }
+        _readyToShow.postValue(true)
+    }
+
+    fun startFilterQuery(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val films: Call<FilmResponsePOJO> = filmsApi.getFilms(api_key, lang)
+            synchronized(_data) {
+                synchronized(_clearAdapter) {
+                    val films: Call<FilmResponsePOJO> =
+                        filmsApi.getFilteredFilms(api_key, lang, query)
 
-            films.enqueue(object : Callback<FilmResponsePOJO> {
-                override fun onFailure(call: Call<FilmResponsePOJO>, t: Throwable) {
-                    print(t.message)
-                    print(t.stackTrace)
-                }
-
-                override fun onResponse(call: Call<FilmResponsePOJO>, filmResponse: Response<FilmResponsePOJO>) {
-                    if (filmResponse.isSuccessful)
-                        filmResponse.body()?.results?.forEach {
-                            val cv = ContentValues()
-                            cv.put("filmId", it.id)
-                            cv.put("favorite", 1)
-                            filmDB.insert("filmsDB", null, cv)
-
-                            var film: Film? = null
-                            val cursor = filmDB.query("filmsDB", null, null, null, null, null, null)
-                            if (cursor.moveToFirst()) {
-                                val id = cursor.getInt(1)
-                                val favorite = cursor.getInt(2)
-
-                                do {
-                                    if (it.id == id && favorite == 1)
-                                        film = FilmFabric.createFilmModel(it, true)
-                                } while (cursor.moveToNext())
-                            }
-
-                            if (film != null) {
-                                val dataValue = _data.value
-                                dataValue?.add(film)
-                                _data.postValue(dataValue)
-                            }
+                    films.enqueue(object : Callback<FilmResponsePOJO> {
+                        override fun onFailure(call: Call<FilmResponsePOJO>, t: Throwable) {
+                            sendUpdateEvent(NothingFindFragment.newInstance())
                         }
+
+                        override fun onResponse(
+                            call: Call<FilmResponsePOJO>,
+                            filmResponse: Response<FilmResponsePOJO>
+                        ) {
+                            if (filmResponse.isSuccessful)
+                                onResponseSuccessFilter(filmResponse)
+                        }
+                    })
                 }
-            })
+            }
+        }
+    }
+
+    private fun onResponseSuccessFilter(filmResponse: Response<FilmResponsePOJO>) {
+        filmResponse.body()?.results?.forEach { filmPojo ->
+            val filmsWithId = roomDB.filmDao().getAllByIds(
+                intArrayOf(filmPojo.id)
+            )
+
+            val isFavorite = if (filmsWithId.isNotEmpty()) {
+                filmsWithId.first().film!!.favorite
+            } else {
+                false
+            }
+
+            val film = FilmFactory.createFilmModel(filmPojo, isFavorite)
+
+            val dataValue = _data.value
+            dataValue?.add(film)
+            _data.postValue(dataValue)
+            _clearAdapter.postValue(true)
+        }
+    }
+
+    fun dbUpdate(film: Film) {
+        val filmWithId = roomDB.filmDao().getAllByIds(intArrayOf(film.id))
+        if (filmWithId.isNotEmpty()) {
+            val primaryKey = filmWithId.first().filmId
+            val filmEntity = FilmEntity(primaryKey, film)
+            roomDB.filmDao().updateAll(filmEntity)
+        }
+        else {
+            val allFilms = roomDB.filmDao().getAll()
+            roomDB.filmDao().insertAll(FilmEntity(allFilms.size + 1, film))
         }
     }
 }

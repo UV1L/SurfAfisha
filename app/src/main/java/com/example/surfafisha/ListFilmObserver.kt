@@ -2,7 +2,9 @@ package com.example.surfafisha
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -14,22 +16,28 @@ class ListFilmObserver(private val context: Context, private val filmAdapter: Li
 
     override fun onChanged(data: List<Film>?) {
         data?.forEach { film ->
-            Glide.with(context)
-                .asBitmap()
-                .load(film.poster_path)
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        filmAdapter.addElement(Pair(film, resource))
-                    }
+            if (film.poster_path.contains("null"))
+                filmAdapter.addElement(
+                    Pair(film, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+                )
+            else {
+                Glide.with(context)
+                    .asBitmap()
+                    .load(film.poster_path)
+                    .into(object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?
+                        ) {
+                            filmAdapter.addElement(Pair(film, resource))
+                        }
 
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        TODO("Not yet implemented")
-                    }
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            TODO("Not yet implemented")
+                        }
 
-                })
+                    })
+            }
         }
     }
 }

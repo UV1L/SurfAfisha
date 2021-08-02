@@ -8,6 +8,6 @@ import com.example.surfafisha.Models.Film
 
 @Entity
 data class FilmEntity(
-    @PrimaryKey val Id: Int,
+    @PrimaryKey val filmId: Int,
     @Embedded val film: Film?
 )

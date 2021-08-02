@@ -3,18 +3,18 @@ package com.example.surfafisha.POJO
 import com.google.gson.annotations.SerializedName
 
 data class FilmPOJO(
-        @SerializedName("poster_path") val poster_path: String,
-        @SerializedName("adult") val adult: Boolean,
-        @SerializedName("overview") val overview: String,
-        @SerializedName("release_date") val release_date: String,
-        @SerializedName("genre_ids") val genre_ids: List<Int>,
-        @SerializedName("id") val id: Int,
-        @SerializedName("original_title") val original_title: String,
-        @SerializedName("original_language") val original_language: String,
-        @SerializedName("title") val title: String,
-        @SerializedName("backdrop_path") val backdrop_path: String,
-        @SerializedName("popularity") val popularity: Double,
-        @SerializedName("vote_count") val vote_count: Int,
-        @SerializedName("video") val video: Boolean,
-        @SerializedName("vote_average") val vote_average: Double) {
+        @SerializedName("poster_path") var poster_path: String,
+        @SerializedName("adult") var adult: Boolean,
+        @SerializedName("overview") var overview: String?,
+        @SerializedName("release_date") var release_date: String?,
+        @SerializedName("genre_ids") var genre_ids: List<Int>,
+        @SerializedName("id") var id: Int,
+        @SerializedName("original_title") var original_title: String,
+        @SerializedName("original_language") var original_language: String,
+        @SerializedName("title") var title: String,
+        @SerializedName("backdrop_path") var backdrop_path: String,
+        @SerializedName("popularity") var popularity: Double,
+        @SerializedName("vote_count") var vote_count: Int,
+        @SerializedName("video") var video: Boolean,
+        @SerializedName("vote_average") var vote_average: Double) {
 }

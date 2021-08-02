@@ -20,6 +20,9 @@ class DateParser {
 
         /** Преобразует дату из вида ГГГГ-ММ-ДД в *день* *месяц* *год* **/
         fun formatDate(date: String) : String? {
+            if (date == "Неизвестно")
+                return date
+
             val arr = date.split("-")
 
             if (arr.size == 3) {

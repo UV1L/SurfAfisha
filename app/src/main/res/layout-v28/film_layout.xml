@@ -14,7 +14,8 @@
         android:layout_width="122dp"
         android:layout_height="match_parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:scaleType="fitXY"/>
 
     <TextView
         android:id="@+id/film_layout_name"
