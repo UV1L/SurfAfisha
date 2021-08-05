@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -26,6 +27,7 @@ import com.example.surfafisha.ui.main.ViewModelFactory
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
 class RecyclerViewFragment : Fragment(), IObserver {
 
@@ -86,6 +88,7 @@ class RecyclerViewFragment : Fragment(), IObserver {
     override fun <T> update(o: T) {
         if (o is Film) viewModel.dbUpdate(o as Film)
         if (o is Fragment) setFragmentIfNoData(o)
+        if (o is ListFilmObserver) viewModel.clearData()
     }
 
     private fun setFragmentIfNoData(fragment: Fragment) {
@@ -99,7 +102,10 @@ class RecyclerViewFragment : Fragment(), IObserver {
 
         viewModel.addObserver(this)
 
-        viewModel.data.observe(viewLifecycleOwner, ListFilmObserver(requireContext(), filmAdapter))
+        val listFilmObserver = ListFilmObserver(requireContext(), filmAdapter)
+        listFilmObserver.addObserver(this)
+
+        viewModel.data.observe(viewLifecycleOwner, listFilmObserver)
 
         viewModel.readyToShow.observe(viewLifecycleOwner, Observer<Boolean> {
             if (it) {

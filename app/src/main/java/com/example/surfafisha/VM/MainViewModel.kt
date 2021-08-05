@@ -11,9 +11,7 @@ import com.example.surfafisha.POJO.FilmResponsePOJO
 import com.example.surfafisha.POJO.FilmsApi
 import com.example.surfafisha.ui.main.Fragments.NoDataFragment
 import com.example.surfafisha.ui.main.Fragments.NothingFindFragment
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -53,6 +51,8 @@ class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
     private val filmsApi: FilmsApi = retrofit.create(FilmsApi::class.java)
 
     fun startQuery() {
+        _clearAdapter.value = true
+        _data.value = ArrayList()
         viewModelScope.launch(Dispatchers.IO) {
             synchronized(_data) {
                 synchronized(_clearAdapter) {
@@ -67,8 +67,9 @@ class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
                             call: Call<FilmResponsePOJO>,
                             filmResponse: Response<FilmResponsePOJO>
                         ) {
-                            if (filmResponse.isSuccessful)
+                            if (filmResponse.isSuccessful) {
                                 onResponseSuccess(filmResponse)
+                            }
                         }
                     })
                 }
@@ -89,12 +90,15 @@ class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
             }
 
             val film = FilmFactory.createFilmModel(filmPojo, isFavorite)
-
-            val dataValue = _data.value
-            dataValue?.add(film)
-            _data.postValue(dataValue)
+            postValueData(film)
         }
         _readyToShow.postValue(true)
+    }
+
+    fun postValueData(film: Film) {
+        val dataValue = _data.value
+        dataValue?.add(film)
+        _data.postValue(dataValue)
     }
 
     fun startFilterQuery(query: String) {
@@ -123,6 +127,8 @@ class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
     }
 
     private fun onResponseSuccessFilter(filmResponse: Response<FilmResponsePOJO>) {
+        _clearAdapter.value = true
+        _data.value = ArrayList()
         filmResponse.body()?.results?.forEach { filmPojo ->
             val filmsWithId = roomDB.filmDao().getAllByIds(
                 intArrayOf(filmPojo.id)
@@ -135,24 +141,26 @@ class MainViewModel(db: FilmDataBase) : ViewModel(), IObservable {
             }
 
             val film = FilmFactory.createFilmModel(filmPojo, isFavorite)
-
-            val dataValue = _data.value
-            dataValue?.add(film)
-            _data.postValue(dataValue)
+            postValueData(film)
             _clearAdapter.postValue(true)
         }
     }
 
     fun dbUpdate(film: Film) {
-        val filmWithId = roomDB.filmDao().getAllByIds(intArrayOf(film.id))
-        if (filmWithId.isNotEmpty()) {
-            val primaryKey = filmWithId.first().filmId
-            val filmEntity = FilmEntity(primaryKey, film)
-            roomDB.filmDao().updateAll(filmEntity)
+        viewModelScope.launch(Dispatchers.IO) {
+            val filmWithId = roomDB.filmDao().getAllByIds(intArrayOf(film.id))
+            if (filmWithId.isNotEmpty()) {
+                val primaryKey = filmWithId.first().filmId
+                val filmEntity = FilmEntity(primaryKey, film)
+                roomDB.filmDao().updateAll(filmEntity)
+            } else {
+                val allFilms = roomDB.filmDao().getAll()
+                roomDB.filmDao().insertAll(FilmEntity(allFilms.size + 1, film))
+            }
         }
-        else {
-            val allFilms = roomDB.filmDao().getAll()
-            roomDB.filmDao().insertAll(FilmEntity(allFilms.size + 1, film))
-        }
+    }
+
+    fun clearData() {
+        _data.value = ArrayList()
     }
 }

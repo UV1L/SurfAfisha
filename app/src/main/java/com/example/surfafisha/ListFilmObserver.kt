@@ -11,8 +11,13 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.surfafisha.Adapters.ListFilmAdapter
 import com.example.surfafisha.Models.Film
+import java.util.*
+import kotlin.collections.ArrayList
 
-class ListFilmObserver(private val context: Context, private val filmAdapter: ListFilmAdapter) : Observer<List<Film>> {
+class ListFilmObserver(private val context: Context, private val filmAdapter: ListFilmAdapter) :
+    Observer<List<Film>>, IObservable {
+
+    override val observers: ArrayList<IObserver> = ArrayList()
 
     override fun onChanged(data: List<Film>?) {
         data?.forEach { film ->
@@ -35,9 +40,11 @@ class ListFilmObserver(private val context: Context, private val filmAdapter: Li
                         override fun onLoadCleared(placeholder: Drawable?) {
                             TODO("Not yet implemented")
                         }
-
                     })
             }
+        }
+        if (data?.isNotEmpty() == true) {
+            sendUpdateEvent(this)
         }
     }
 }
