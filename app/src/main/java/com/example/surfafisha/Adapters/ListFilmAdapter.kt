@@ -2,6 +2,7 @@ package com.example.surfafisha.Adapters
 
 import android.R.attr.data
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.util.ArrayMap
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -10,18 +11,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.surfafisha.IObservable
 import com.example.surfafisha.IObserver
 import com.example.surfafisha.Models.Film
 import com.example.surfafisha.Parsers.DateParser
 import com.example.surfafisha.R
 import com.example.surfafisha.ui.main.FilmViewHolder
+import kotlinx.coroutines.coroutineScope
 import java.time.Duration
 
 
 class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>(), IObservable {
 
-    private var items: ArrayList<Pair<Film, Bitmap>> = ArrayList()
+    private var items: ArrayList<Film> = ArrayList()
     override val observers = ArrayList<IObserver>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilmViewHolder {
@@ -41,14 +46,30 @@ class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>(), IObservable {
     override fun getItemCount(): Int = items.size
 
     override fun onBindViewHolder(holder: FilmViewHolder, position: Int) {
-        val film = items[position].first
-        val bitmap = items[position].second
+        val film = items[position]
+
+        Glide.with(holder.itemView)
+            .asBitmap()
+            .load(film.poster_path)
+            .placeholder(R.mipmap.default_placeholder)
+            .into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    transition: Transition<in Bitmap>?
+                ) {
+                    holder.img.setImageBitmap(resource)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    holder.img.setImageDrawable(placeholder)
+                }
+            })
 
         holder.name.text = film.title
         holder.overview.text = film.overview
         holder.date.text = DateParser.formatDate(film.release_date)
-        holder.img.setImageBitmap(bitmap)
-        if (film.favorite == true)
+
+        if (film.favorite)
             holder.favorite.setImageResource(R.mipmap.heart_icon_fill)
         else
             holder.favorite.setImageResource(R.mipmap.heart_icon_not_fill)
@@ -61,9 +82,14 @@ class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>(), IObservable {
         }
     }
 
-    fun addElement(element: Pair<Film, Bitmap>) {
+    fun addElement(element: Film) {
         items.add(element)
         notifyItemInserted(itemCount - 1)
+    }
+
+    fun addAll(elements: List<Film>) {
+        items.addAll(elements)
+        notifyDataSetChanged()
     }
 
     fun clear() {

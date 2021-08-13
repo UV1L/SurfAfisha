@@ -14,37 +14,13 @@ import com.example.surfafisha.Models.Film
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ListFilmObserver(private val context: Context, private val filmAdapter: ListFilmAdapter) :
+class ListFilmObserver(private val filmAdapter: ListFilmAdapter) :
     Observer<List<Film>>, IObservable {
 
     override val observers: ArrayList<IObserver> = ArrayList()
 
     override fun onChanged(data: List<Film>?) {
-        data?.forEach { film ->
-            if (film.poster_path.contains("null"))
-                filmAdapter.addElement(
-                    Pair(film, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
-                )
-            else {
-                Glide.with(context)
-                    .asBitmap()
-                    .load(film.poster_path)
-                    .into(object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            filmAdapter.addElement(Pair(film, resource))
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            TODO("Not yet implemented")
-                        }
-                    })
-            }
-        }
-        if (data?.isNotEmpty() == true) {
-            sendUpdateEvent(this)
-        }
+        filmAdapter.clear()
+        data?.let { filmAdapter.addAll(it) }
     }
 }
