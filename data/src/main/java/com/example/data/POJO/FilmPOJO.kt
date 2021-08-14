@@ -1,4 +1,4 @@
-package com.example.surfafisha.POJO
+package com.example.data.POJO
 
 import com.google.gson.annotations.SerializedName
 

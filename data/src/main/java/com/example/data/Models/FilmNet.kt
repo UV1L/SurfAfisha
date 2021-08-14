@@ -1,9 +1,8 @@
-package com.example.surfafisha.Models
+package com.example.data.Models
 
-import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
-data class Film(
+data class FilmNet(
     @SerializedName("id") var id: Int,
     @SerializedName("title") var title: String,
     @SerializedName("poster_path") var poster_path: String,

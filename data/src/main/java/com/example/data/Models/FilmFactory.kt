@@ -1,17 +1,17 @@
-package com.example.surfafisha.Models
+package com.example.data.Models
 
-import com.example.surfafisha.POJO.FilmPOJO
+import com.example.data.POJO.FilmPOJO
 
 class FilmFactory {
 
     companion object {
         private const val posterBaseUrl = "https://image.tmdb.org/t/p/w185"
 
-        fun createFilmModel(film: FilmPOJO, favorite: Boolean) : Film {
+        fun createFilmModel(film: FilmPOJO, favorite: Boolean) : FilmNet {
             val posterPath = posterBaseUrl + film.poster_path
             film.overview?.let {
                 film.release_date?.let {
-                    return Film(
+                    return FilmNet(
                         film.id,
                         film.title,
                         posterPath,
@@ -21,7 +21,7 @@ class FilmFactory {
                     )
                 }
             }
-            return Film(
+            return FilmNet(
                 film.id,
                 film.title,
                 posterPath,

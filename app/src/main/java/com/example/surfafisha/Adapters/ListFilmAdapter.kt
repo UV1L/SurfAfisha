@@ -1,33 +1,27 @@
 package com.example.surfafisha.Adapters
 
-import android.R.attr.data
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.ArrayMap
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.example.surfafisha.IObservable
-import com.example.surfafisha.IObserver
-import com.example.surfafisha.Models.Film
+import com.example.domain.IObservable
+import com.example.domain.IObserver
+import com.example.data.Models.FilmNet
+import com.example.domain.model.Film
 import com.example.surfafisha.Parsers.DateParser
 import com.example.surfafisha.R
 import com.example.surfafisha.ui.main.FilmViewHolder
-import kotlinx.coroutines.coroutineScope
-import java.time.Duration
 
 
-class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>(), IObservable {
+class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>() {
 
     private var items: ArrayList<Film> = ArrayList()
-    override val observers = ArrayList<IObserver>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilmViewHolder {
         val view = LayoutInflater
@@ -74,12 +68,12 @@ class ListFilmAdapter : RecyclerView.Adapter<FilmViewHolder>(), IObservable {
         else
             holder.favorite.setImageResource(R.mipmap.heart_icon_not_fill)
 
-        holder.favorite.setOnClickListener {
-            film.favorite = !film.favorite
-            onBindViewHolder(holder, position)
-
-            sendUpdateEvent(film)
-        }
+//        holder.favorite.setOnClickListener {
+//            film.favorite = !film.favorite
+//            onBindViewHolder(holder, position)
+//
+//            sendUpdateEvent(film)
+//        }
     }
 
     fun addElement(element: Film) {

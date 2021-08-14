@@ -1,14 +1,14 @@
-package com.example.surfafisha.DB
+package com.example.data.DB
 
-import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.surfafisha.Models.Film
+import com.example.data.Models.FilmNet
+import com.example.domain.model.Film
 
 @Entity
 data class FilmEntity(
 
-    @PrimaryKey val filmId: Int,
+    @PrimaryKey(autoGenerate = true)
     @Embedded val film: Film?
 )

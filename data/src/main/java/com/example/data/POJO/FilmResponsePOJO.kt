@@ -1,6 +1,5 @@
-package com.example.surfafisha.POJO
+package com.example.data.POJO
 
-import com.example.surfafisha.POJO.FilmPOJO
 import com.google.gson.annotations.SerializedName
 
 data class FilmResponsePOJO(

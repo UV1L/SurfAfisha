@@ -1,2 +1,4 @@
 include ':app'
 rootProject.name = "SurfAfisha"
+include ':data'
+include ':domain'

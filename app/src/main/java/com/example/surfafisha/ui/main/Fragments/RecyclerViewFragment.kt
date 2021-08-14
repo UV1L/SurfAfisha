@@ -17,36 +17,24 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.example.surfafisha.*
 import com.example.surfafisha.Adapters.ListFilmAdapter
-import com.example.surfafisha.DB.DAO.FilmDataBase
-import com.example.surfafisha.Models.Film
+import com.example.data.DB.DAO.FilmDataBase
+import com.example.data.Models.FilmNet
 import com.example.surfafisha.VM.MainViewModel
 import com.example.surfafisha.ui.main.ViewModelFactory
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import java.util.ArrayList
 
-class RecyclerViewFragment : BaseFragment(), IObserver {
+class RecyclerViewFragment : BaseFragment() {
 
     companion object {
         fun newInstance() = RecyclerViewFragment()
     }
 
-    private lateinit var db: FilmDataBase
-    private val viewModel: MainViewModel by viewModels { ViewModelFactory(db) }
+    private val viewModel: MainViewModel by viewModels { ViewModelFactory() }
 
     override val eventObservable: ViewEventObservable by lazy { viewModel }
 
     private lateinit var filmAdapter: ListFilmAdapter
     private lateinit var recyclerView: RecyclerView
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-
-        db = Room.databaseBuilder(
-            requireContext(),
-            FilmDataBase::class.java,
-            "FilmReader"
-        ).allowMainThreadQueries().build()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,39 +53,39 @@ class RecyclerViewFragment : BaseFragment(), IObserver {
 
         onObserveAll()
 
-        viewModel.startQuery()
+        viewModel.getData()
 
-        val searchEditTxt = parentFragment?.view?.findViewById<EditText>(R.id.search_edit_text)
-        val clearIcon = parentFragment?.view?.findViewById<ImageView>(R.id.clear_icon)
-        searchEditTxt?.afterTextChanged {
-            if (it != "") {
-                clearIcon?.visibility = ImageView.VISIBLE
-                viewModel.startQuery(it)
-            } else {
-                if (viewModel.data.value?.isEmpty() == true) {
-                    parentFragment?.parentFragmentManager?.popBackStack()
-                    val progressIndicator = requireView()
-                        .findViewById<CircularProgressIndicator>(R.id.fragment_main_progress_bar)
-                    progressIndicator.visibility = CircularProgressIndicator.VISIBLE
-                    recyclerView.visibility = RecyclerView.INVISIBLE
-                }
-                viewModel.startQuery()
-                clearIcon?.visibility = ImageView.INVISIBLE
-            }
-        }
+//        val searchEditTxt = parentFragment?.view?.findViewById<EditText>(R.id.search_edit_text)
+//        val clearIcon = parentFragment?.view?.findViewById<ImageView>(R.id.clear_icon)
+//        searchEditTxt?.afterTextChanged {
+//            if (it != "") {
+//                clearIcon?.visibility = ImageView.VISIBLE
+//                viewModel.startQuery(it)
+//            } else {
+//                if (viewModel.data.value?.isEmpty() == true) {
+//                    parentFragment?.parentFragmentManager?.popBackStack()
+//                    val progressIndicator = requireView()
+//                        .findViewById<CircularProgressIndicator>(R.id.fragment_main_progress_bar)
+//                    progressIndicator.visibility = CircularProgressIndicator.VISIBLE
+//                    recyclerView.visibility = RecyclerView.INVISIBLE
+//                }
+//                viewModel.startQuery()
+//                clearIcon?.visibility = ImageView.INVISIBLE
+//            }
+//        }
 
-        clearIcon?.setOnClickListener {
-            searchEditTxt?.setText("")
-        }
+//        clearIcon?.setOnClickListener {
+//            searchEditTxt?.setText("")
+//        }
     }
 
-    override fun <T> update(o: T) {
-        when (o) {
-            is Film -> viewModel.dbUpdate(o as Film)
-            is Fragment -> setFragmentIfNoData(o)
-            is ListFilmObserver -> viewModel.clearData()
-        }
-    }
+//    override fun <T> update(o: T) {
+//        when (o) {
+//            is FilmNet -> viewModel.dbUpdate(o as FilmNet)
+//            is Fragment -> setFragmentIfNoData(o)
+//            is ListFilmObserver -> viewModel.clearData()
+//        }
+//    }
 
     private fun setFragmentIfNoData(fragment: Fragment) {
         parentFragment?.parentFragmentManager?.beginTransaction()
@@ -106,12 +94,10 @@ class RecyclerViewFragment : BaseFragment(), IObserver {
     }
 
     private fun onObserveAll() {
-        filmAdapter.addObserver(this)
 
-        viewModel.addObserver(this)
+//        viewModel.addObserver(this)
 
         val listFilmObserver = ListFilmObserver(filmAdapter)
-        listFilmObserver.addObserver(this)
 
         viewModel.data.observe(viewLifecycleOwner, listFilmObserver)
 

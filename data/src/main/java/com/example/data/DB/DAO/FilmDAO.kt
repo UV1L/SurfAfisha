@@ -1,8 +1,8 @@
-package com.example.surfafisha.DB.DAO
+package com.example.data.DB.DAO
 
 import androidx.room.*
-import com.example.surfafisha.DB.FilmEntity
-import com.example.surfafisha.Models.Film
+import com.example.data.DB.FilmEntity
+import com.example.domain.model.Film
 
 @Dao
 interface FilmDAO {
@@ -13,10 +13,10 @@ interface FilmDAO {
     fun getAllByIds(ids: IntArray): List<FilmEntity>
 
     @Insert
-    fun insertAll(vararg film: FilmEntity)
+    fun insertAll(films: List<FilmEntity>)
 
     @Update
-    fun updateAll(vararg film: FilmEntity)
+    fun updateAll(films: List<FilmEntity>)
 
     @Delete
     fun delete(filmEntity: FilmEntity)
